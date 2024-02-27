@@ -21,7 +21,8 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "bootloader.h"
+#include "debug_console.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -96,18 +97,19 @@ int main(void)
   MX_USART2_UART_Init();
   MX_USART6_UART_Init();
   /* USER CODE BEGIN 2 */
-
-  /* USER CODE END 2 */
-
-  /* Infinite loop */
-  /* USER CODE BEGIN WHILE */
-  while (1)
-  {
-    /* USER CODE END WHILE */
-
-    /* USER CODE BEGIN 3 */
-  }
-  /* USER CODE END 3 */
+  	/* Lets check whether button is pressed or not, if not pressed jump to user application */
+	if ( HAL_GPIO_ReadPin(BUTTON_GPIO_Port, BUTTON_Pin) == GPIO_PIN_RESET )
+	{
+		printmsg("BL_DEBUG_MSG:Button is pressed .. going to BL mode\n\r");
+		//we should continue in bootloader mode
+		bootloader_uart_read_data();
+	}
+	else
+	{
+		printmsg("BL_DEBUG_MSG:Button is not pressed .. executing user app\n");
+		//jump to user application
+		bootloader_jump_to_user_app();
+	}
 }
 
 /**

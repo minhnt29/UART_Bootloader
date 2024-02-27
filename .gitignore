@@ -1,1 +1,4 @@
 .settings
+Debug
+*.launch
+.vscode

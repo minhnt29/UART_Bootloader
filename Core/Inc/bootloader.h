@@ -7,8 +7,10 @@
 
 #ifndef INC_BOOTLOADER_H_
 #define INC_BOOTLOADER_H_
-//version 1.0
-#define BL_VERSION 0x10
+
+#include "stdint.h"
+#include "stm32f4xx_hal.h"
+#include <string.h>
 
 #define INVALID_SECTOR 0x04
 
@@ -17,7 +19,7 @@
 #define SRAM1_SIZE            128*1024     // STM32F411V6 has 128KB of SRAM1
 #define SRAM1_END             (SRAM1_BASE + SRAM1_SIZE)
 #define FLASH_SIZE            512*1024     // STM32F411V6 has 512KB of FLASH
-
+#define FLASH_SECTOR2_BASE_ADDRESS 0x08008000U
 // our bootloader commands
 
 //#define  <command name >	<command_code>
@@ -46,7 +48,7 @@ typedef enum {
 /*CRC*/
 typedef enum {
 	VERIFY_CRC_SUCCESS = 0,
-	VERIFY_CRC_SUCCESS
+	VERIFY_CRC_FAIL
 }crc_status_code_t;
 
 typedef enum {
@@ -54,15 +56,38 @@ typedef enum {
 	ADDR_INVALID
 }address_status_code_t;
 
-uint8_t supported_commands[] = {
-                               BL_GET_VER ,
-                               BL_GET_HELP,
-                               BL_GET_CID,
-                               BL_GET_RDP_STATUS,
-                               BL_GO_TO_ADDR,
-                               BL_FLASH_ERASE,
-                               BL_MEM_WRITE,
-                               BL_READ_SECTOR_P_STATUS} ;
 
+void bootloader_uart_read_data(void);
+void bootloader_jump_to_user_app(void);
+
+void bootloader_handle_getver_cmd(uint8_t *bl_rx_buffer);
+void bootloader_handle_gethelp_cmd(uint8_t *bl_rx_buffer);
+void bootloader_handle_getcid_cmd(uint8_t *bl_rx_buffer);
+void bootloader_handle_getrdp_cmd(uint8_t *bl_rx_buffer);
+void bootloader_handle_go_cmd(uint8_t *bl_rx_buffer);
+void bootloader_handle_flash_erase_cmd(uint8_t *bl_rx_buffer);
+void bootloader_handle_mem_write_cmd(uint8_t *bl_rx_buffer);
+void bootloader_handle_en_rw_protect(uint8_t *bl_rx_buffer);
+void bootloader_handle_mem_read (uint8_t *bl_rx_buffer);
+void bootloader_handle_read_sector_protection_status(uint8_t *bl_rx_buffer);
+void bootloader_handle_read_otp(uint8_t *bl_rx_buffer);
+void bootloader_handle_dis_rw_protect(uint8_t *bl_rx_buffer);
+
+void bootloader_send_ack(uint8_t command_code);
+void bootloader_send_nack(void);
+
+uint8_t bootloader_verify_crc (uint8_t *pData, uint32_t len, uint32_t crc_host);
+uint8_t get_bootloader_version(void);
+void bootloader_uart_write_data(uint8_t *bl_tx_buffer,uint32_t len);
+
+uint16_t get_mcu_chip_id(void);
+uint8_t get_flash_rdp_level(void);
+uint8_t verify_address(uint32_t go_address);
+uint8_t execute_flash_erase(uint8_t sector_number , uint8_t number_of_sector);
+uint8_t execute_mem_write(uint8_t *pBuffer, uint32_t mem_address, uint32_t len);
+
+uint8_t configure_flash_sector_rw_protection(uint8_t sector_details, uint8_t protection_mode, uint8_t disable);
+
+uint16_t read_OB_rw_protection_status(void);
 
 #endif /* INC_BOOTLOADER_H_ */
